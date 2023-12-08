@@ -162,8 +162,17 @@ class Dataset():
 
 	def get_split(self, split_name: str) -> np.array:
 		"""
+		Retrieve the dataset split based on the name of the split
+
+		Args:
+			split_name (str): Name of the split
+		
+		Returns:
+			
 		"""
 		if split_name not in self.splits.keys():
 			raise RuntimeError(F"Invalid split_name: {split_name}")
+
+		split_arr = self.splits[split_name]
 		
-		return self.splits[split_name]
+		return split_arr

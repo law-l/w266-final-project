@@ -1,12 +1,12 @@
 from utils.dataset import Dataset
-from utils.model import (
+from utils.demo import (
     finetune_model,
     evaluate_tf_model,
     evaluate_pt_model,
     save_tf_hidden_states,
     save_pt_hidden_states,
+    run_probes
 )
-from utils.probe import run_probes
 
 
 def main():
@@ -25,8 +25,8 @@ def main():
     ############################################################################
 
     kwargs = {
-        "X_train": dataset.get_split("X_train"),
-        "X_val": dataset.get_split("X_val"),
+        "X_train": dataset.get_split("X_train_tokenized"),
+        "X_val": dataset.get_split("X_val_tokenized"),
         "y_train": dataset.get_split("y_train"),
         "y_val": dataset.get_split("y_val"),
     }

@@ -3,7 +3,7 @@ from sklearn.metrics import f1_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import Pipeline
-from token_map import TokenMap
+from utils.token_map import TokenMap
 
 import os
 import pandas as pd
@@ -413,87 +413,3 @@ class Probe():
 
                 # save results
                 self._save_results(df_results, filename)
-
-
-def run_probes(model_index: int, token_map_filename: str):
-    """
-    Run probes for a model using a specified token map
-
-    Args:
-        model_index (int): Index of the model
-        token_map_filename (str): Filename of the token map in csv
-    """
-    token_map = TokenMap()
-    token_map.load(filename = token_map_filename)
-    probe = Probe(model_index, token_map)
-
-    topics_words = {
-        "Profanity": [
-            "ass", "assclown", "asses", "asshole", "assholes", "deadass", 
-            "dumbass", 'shit','fucking', 'fuck', 'fucked', 'fuckin', 'mofuckas', 
-            'motherfucking', 'fuckers',  'fuckoff', 'fuckwad', 'fucks', 'fucker', 
-            'motherfuckers', 'clusterfuck', 'fuckwits', 'dumbfucks', 
-            'motherfucker', 'bullshit', 'shitskin', 'bullshits', 'shitlings', 
-            'shithole', 'dogshit', 'shitskins', 'shits', 'shitty',
-            'shittier', 'shitholes', 'shitter', 'shitting','shithead',
-        ],
-        "African": [
-            "africa","african","africans","afro","black","blacks","colored",
-            "coon","coonin","coons","coony","ghetto","ghettos","harlem",
-            "housenigger","kafir","mammy","moneynigger","mooncricket","negress",
-            "negresses","negro","negroes","nig","nigero","nigga","niggah",
-            "niggas","nigger","niggerdick","niggerish","niggers",
-            "niggershitbullshit","niggerz","niggra","niggress","niglet",
-            "niglets","nigress","nigs","pickaninny","sheboon","spade"
-        ],
-        "Women": [
-            "babygirl","biatch","biches","bitch","bitched","bitches",
-            "bitching","chicks","cunt","cunts","dame","daughter","daughters",
-            "daughty","divorcee","estrogen","fanny","female","femaleness",
-            "females","feminazi","feminine","feminism","feminist","feminists",
-            "feminizing","femme","fems","girl","girlfriend","girls","hag","ho",
-            "hoe","hoes","ladies","lady","loosewomen","lulu","mamma",
-            "misogenous","misogynist","misogynistic","misogyny","mother",
-            "mothers","princess","prostitute","prostitutes","queen","sis",
-            "sister","sisters","slut","sluts","slutshaming","slutty","sow",
-            "sows","thot","whore","whoredom","whores","wife","witch","witches",
-            "woman","women","womens","womensmarch","yentas"
-        ],
-        "LGBTQ": [
-            "agender","bulldykes","dyke","dykes","dykey","fag","faggot",
-            "faggotry","faggots","faggoty","faggy","fags","fgt","furfaggotry",
-            "gay","gays","girlfags","h0m0","homo","homophobe","homophobes",
-            "homophobia","homophobic","homosexual","homosexuality","homosexuals",
-            "jewfags","lesbian","lesbianism","lesbians","lesbophobia","lgbt",
-            "lgbtq","lgbtqwtf","newfag","pansy","queer","queerbaiting","queers",
-            "stormfags"
-        ],
-        "Jewish": [
-            "antisemitism","chabad","goy","goyem","goyim","hebrew","hebrews",
-            "heeb","heebhole","holocaust","hymiewood","israel","israeli",
-            "israelite","israels","israid","istandwithisrael","jew","jewa",
-            "jewdea","jewess","jewfags","jewfilth","jewish","jewishprivilege",
-            "jews","judaism","kik","kike","kikes","kikescum","kikey",
-            "namethejew","rabbi","schlomo","semite","semites","semitic",
-            "semitism","shekel","shekels","shoahed","synagogue","talmud",
-            "yid","yids","zionism","zionist"
-        ],
-        "Islam": [
-            "allah","banislam","burqa","halal","hamas","hezbollah","islam",
-            "islamaphobic","islami","islamic","islamist","islamistheproblem",
-            "islamists","islamofascism","islamophobe","islamophobia",
-            "islamophobic","jihad","jihadi","jihadis","jihadists","kislam",
-            "mecca","medina","mohamed","mohammad","mohammed","mohammedean",
-            "moslem","moslems","mosque","mosques","muhammad","muhammedans",
-            "mulla","muslim","muslime","muslimes","muslims","musloid","muslum",
-            "mussie","mussleman","mussorgsky","muzrat","muzrats","muzzie",
-            "muzzies","muzzles","muzzrat","muzzrats","stopislam","umma","zakat"
-        ]
-    }
-
-    for topic, words in topics_words.items():
-        probe.run(topic, words)
-
-
-
-
