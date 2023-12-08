@@ -160,6 +160,40 @@ class Dataset():
 				result.attention_mask	
 			]
 
+
+	def get_tokenized_test_post(
+			self,
+			test_post_index: int,
+			max_length = 200,
+			tokenizer_name = 'bert-base-uncased'):
+		"""
+		Get the tokenized results for one test post. This function is created
+		to facilitate the extraction of hidden states to avoid OOM issues.
+
+		Args:
+			test_post_index (int): Index of the test post
+			max_length (int): Maximum length of the post (truncate if longer)
+			tokenizer_name (str):  Name of pretrained tokenizer
+		"""
+		
+		tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
+
+		result = tokenizer(
+			[self.splits["X_test"][test_post_index]],
+			max_length = max_length,
+			truncation = True,
+			padding = 'max_length',
+			return_tensors = 'tf',
+		)
+		tokenized_test_post = [
+			result.input_ids,
+			result.token_type_ids,
+			result.attention_mask	
+		]
+
+		return tokenized_test_post
+
+
 	def get_split(self, split_name: str) -> np.array:
 		"""
 		Retrieve the dataset split based on the name of the split

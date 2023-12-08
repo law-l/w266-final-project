@@ -5,6 +5,7 @@ import re
 import os
 import torch
 
+from utils.dataset import Dataset
 from utils.model import Model
 from utils.token_map import TokenMap
 from utils.probe import Probe
@@ -115,7 +116,7 @@ def evaluate_pt_model(
 def save_tf_hidden_states(
         model_index: int,
         weights_filename: str, 
-        X_test_tokenized: list[str],
+        dataset: Dataset,
         folderpath: str = "../data/hidden_states/"):
     """
     Save hidden states as numpy arrays for models built using tensorflow under
@@ -124,8 +125,8 @@ def save_tf_hidden_states(
     Args:
         model_index (int): Index of the model
         weights_filename (str): Filename of the saved model weights
-        X_test_tokenized (list[str]): List of tokenized subword tokens to use
-            in extracting the hidden states
+        dataset (Dataset): A dataset object
+        folderpath (str): Folderpath to save the hidden states
     """
     # load models
     model = Model(
@@ -136,12 +137,17 @@ def save_tf_hidden_states(
     model_index = re.findall(R"(model\_\d+)_.*", weights_filename)[0]
     filename_prefix = F"{model_index}_hidden_states"
 
-    for test_set_idx, text in enumerate(X_test_tokenized):
+    num_test_set_idx = len(dataset.get_split("X_test"))
+
+    for test_set_idx in range(num_test_set_idx):
 
         logging.debug(F"Processing test_set_idx={test_set_idx}")
 
+        tokenized_text = dataset.get_tokenized_test_post(test_set_idx)
+        print(tokenized_text)
+
         # generate prediction
-        result = model.model_object.predict(text)
+        result = model.model_object.predict(tokenized_text)
 
         # save hidden states
         filepath = os.path.join(
@@ -155,7 +161,7 @@ def save_tf_hidden_states(
 def save_pt_hidden_states(
         model_index: int, 
         pretrained_model_name: str, 
-        X_test: list[str],
+        dataset: Dataset,
         folderpath: str = "../data/hidden_states/"):
     """
     Save hidden states as numpy arrays for models built using pytorch under
@@ -164,8 +170,8 @@ def save_pt_hidden_states(
     Args:
         model_index (int): Index of the model
         pretrained_model_name (str): Name of pretrained tokenizer
-        X_test (list[str]): List of post contents to use in extracting the 
-            hidden states
+        dataset (Dataset): A dataset object
+        folderpath (str): Folderpath to save the hidden states
     """
     # set up pretrained tokenizer
     tokenizer = transformers.AutoTokenizer.from_pretrained(
@@ -183,7 +189,7 @@ def save_pt_hidden_states(
 
     filename_prefix = F"model_{model_index}_hidden_states"
 
-    for test_set_idx, text in enumerate(X_test):
+    for test_set_idx, text in enumerate(dataset.get_split("X_test")):
 
         logging.debug(F"Processing test_set_idx={test_set_idx}")
 
@@ -201,6 +207,7 @@ def save_pt_hidden_states(
         )
         with open(filepath, "wb") as fp:
             np.save(fp, np.array([h.numpy() for h in result.hidden_states]))
+
 
 def run_probes(model_index: int, token_map_filename: str):
     """

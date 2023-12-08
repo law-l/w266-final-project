@@ -19,14 +19,16 @@ class Probe():
     Class to build and evaluate probing classifiers
     """
     model_index: int
-    folderpath: str
+    hidden_states_folderpath: str
+    probing_results_folderpath: str
     token_map: TokenMap
 
     def __init__(
         self, 
         model_index: int, 
         token_map: TokenMap,
-        folderpath: str = "../data/probe_results/"):
+        hidden_states_folderpath: str = "../data/hidden_states/",
+        probing_results_folderpath: str = "../data/probe_results/",):
         """
         Initialize the class object
 
@@ -38,7 +40,8 @@ class Probe():
         
         self.model_index = model_index
         self.token_map = token_map
-        self.folderpath = folderpath
+        self.hidden_states_folderpath = hidden_states_folderpath
+        self.probing_results_folderpath = probing_results_folderpath
 
 
     def _get_probe_masks(self, words: list[str]) -> dict:
@@ -168,7 +171,10 @@ class Probe():
         """
 
         # load the hidden states
-        filepath_prefix = F"../data/internal_states/model_{self.model_index}_internal_states"
+        filepath_prefix = os.path.join(
+            self.hidden_states_folderpath,
+            F"model_{self.model_index}_hidden_states"
+        )
         filepath = F"{filepath_prefix}_test_set_{test_set_index}_hidden_states.npy"
         hidden_states = np.load(filepath)
 
@@ -317,7 +323,7 @@ class Probe():
                 results
             filename (str): Filename of the csv file to be saved
         """
-        filepath = os.path.join(self.folderpath, filename)
+        filepath = os.path.join(self.probing_results_folderpath, filename)
         df_result.to_csv(filepath, index = False)
 
 
@@ -331,7 +337,7 @@ class Probe():
         Returns:
             is_completed (bool): Whether the probe has been completed
         """
-        filepath = os.path.join(self.folderpath, filename)
+        filepath = os.path.join(self.probing_results_folderpath, filename)
         is_completed = os.path.exists(filepath)
         
         return is_completed
@@ -345,7 +351,7 @@ class Probe():
         layer_indices: list[int] = np.arange(13)):
         """
         Run probe for a topic and a list of key words. The results are saved
-        in the directory (self.folderpath)
+        in the directory (self.probing_results_folderpath)
 
         Args:
             topic (str): The topic to be probed

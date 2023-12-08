@@ -1,4 +1,5 @@
 from utils.dataset import Dataset
+from utils.token_map import TokenMap
 from utils.demo import (
     finetune_model,
     evaluate_tf_model,
@@ -65,21 +66,42 @@ def main():
     save_tf_hidden_states(
         model_index = 1,
         weights_filename = model_1_name,
-        X_test_tokenized = dataset.get_split("X_test_tokenized"),
+        dataset = dataset,
     )
     save_tf_hidden_states(
         model_index = 2,
         weights_filename = model_2_name,
-        X_test_tokenized = dataset.get_split("X_test_tokenized"),
+        dataset = dataset,
     )
     save_pt_hidden_states(
         model_index = 3,
-        weights_filename = model_3_name,
-        X_test = dataset.get_split("X_test"),
+        pretrained_model_name = model_3_name,
+        dataset = dataset,
     )
 
     ############################################################################
-    # Step 5: Run probes for Models 1, 2 and 3                                 #
+    # Step 5: Build token maps for Models 1, 2 and 3                           #
+    ############################################################################
+
+    token_maps = {
+        1: "bert-base-uncased",
+        2: "bert-base-uncased",
+        3: "Hate-speech-CNERG/bert-base-uncased-hatexplain"
+    }
+
+    kwargs = {
+        "X_test_post_tokens": dataset.get_split("X_test_post_tokens"),
+        "X_test_rationales": dataset.get_split("X_test_rationales"),
+        "X_test_annotators": dataset.get_split("X_test_annotators"),
+        "y_test": dataset.get_split("y_test")
+    }
+    
+    for model_index, pretrained_model_name in token_maps.items():
+        token_map = TokenMap().build(pretrained_model_name, **kwargs)
+        token_map.save(F"model_{model_index}_token_map.csv")
+
+    ############################################################################
+    # Step 6: Run probes for Models 1, 2 and 3                                 #
     ############################################################################
 
     for model_index in range(1, 4):
@@ -87,7 +109,6 @@ def main():
             model_index = model_index, 
             token_map_filename = F"model_{model_index}_token_map.csv"
         )
-
 
 if __name__ == "__main__":
     main()
