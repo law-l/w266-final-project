@@ -15,22 +15,12 @@ import logging
 logging.basicConfig(level = logging.DEBUG)
 
 
-def finetune_model(
-        model_index: int,
-        X_train: np.array, 
-        y_train: np.array, 
-        X_val: np.array, 
-        y_val: np.array):
+def finetune_model(model_index: int, dataset: Dataset):
     """
     Iterate through all combinations of configs to fine-tune model
     Args:
         model_index (int): Index of the model
-        X_train (np.array): Array of BERT-tokenized post tokens from 
-            training set (X_train_tokenized)
-        y_train (np.array): Array of labels from training set (y_train)
-        X_val (np.array): Array of BERT-tokenized post tokens from 
-            training set (X_val_tokenized)
-        y_val (np.array): Array of labels from training set (y_val)
+        dataset (Dataset): A Dataset object
     """
 
     optimizer_names = [
@@ -54,43 +44,40 @@ def finetune_model(
                 
             # finetune model
             model_hist = model.finetune(
-                X_train = X_train,
-                y_train = y_train,
-                X_val = X_val,
-                y_val = y_val,
+                X_train = dataset.get_split("X_train"),
+                y_train = dataset.get_split("y_train"),
+                X_val = dataset.get_split("y_val"),
+                y_val = dataset.get_split("y_val"),
             )
 
 
-def evaluate_tf_model(
-      filename: str,
-      X_test: np.array,
-      y_test: np.array):
+def evaluate_tf_model(filename: str, dataset: Dataset):
     """
     After running all experiments, pick the best iterations for models 1 and 2 
     based on validation scores and then run evaluate using test set
 
     Args:
         filename (str): Filename to the saved model weights
-        X_test (np.array): Features for test set
-        y_test (np.array): Labels for test set
+        dataset (Dataset): A Dataset object
     """
     tf.keras.backend.clear_session()
 
     model = Model(weights_filename = filename)
-    model.evaluate(X_test = X_test, y_test = y_test)
+    model.evaluate(
+        X_test = dataset.get_split("X_test_tokenized"),
+        y_test = dataset.get_split("y_test"),
+    )
 
 
 def evaluate_pt_model(
-        X_test: np.array,
-        y_test: np.array,
+        dataset: Dataset,
         pretrained_model_name: str = "Hate-speech-CNERG/bert-base-uncased-hatexplain"):
     """
     After running all experiments, pick the best iterations for model 3 
     based on validation scores and then run evaluate using test set
 
     Args:
-        X_test (np.array): Features for test set
-        y_test (np.array): Labels for test set
+        dataset (Dataset): A Dataset object
         pretrained_model_name (str): Name of pretrained model
     """
 
@@ -99,9 +86,11 @@ def evaluate_pt_model(
         model = pretrained_model_name)
     
     y_pred = np.array([
-        int(prediction["label"] != "normal") for prediction in pipe(X_test)
+        int(prediction["label"] != "normal") 
+        for prediction in pipe(dataset.get_split("X_test"))
     ])
 
+    y_test = dataset.get_split("y_test")
     if isinstance(y_test, list):
         y_test = np.array(y_test)
 
@@ -207,6 +196,19 @@ def save_pt_hidden_states(
         )
         with open(filepath, "wb") as fp:
             np.save(fp, np.array([h.numpy() for h in result.hidden_states]))
+
+
+def build_token_map(model_index: int, pretrained_model_name: str, dataset: Dataset):
+    """
+    """
+    kwargs = {
+        "X_test_post_tokens": dataset.get_split("X_test_post_tokens"),
+        "X_test_rationales": dataset.get_split("X_test_rationales"),
+        "X_test_annotators": dataset.get_split("X_test_annotators"),
+        "y_test": dataset.get_split("y_test")
+    }
+    token_map = TokenMap().build(pretrained_model_name, **kwargs)
+    token_map.save(F"model_{model_index}_token_map.csv")
 
 
 def run_probes(model_index: int, token_map_filename: str):
