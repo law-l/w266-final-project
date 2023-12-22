@@ -2,7 +2,7 @@
 
 This section of the repo is dedicated to the final project for the course 
 W266: Natural Language Processing with Deep Learning for the term of Fall 2023.
-The final paper can be found under the `report` directory.
+The final paper and the presentation can be found under the `report` directory. 
 
 ## Abstract
 
@@ -43,3 +43,4 @@ experiments. For the original hateXplain dataset, please refer to [this repo](ht
 
 Please refer to `/src/main.py` for examples on how the utilities are used in
 our experiments.
+
